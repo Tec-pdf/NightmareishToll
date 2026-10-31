@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": ["###","###","###"],
+  "key": {"#": {"item": "bellstaff_tplayers:bell_shard"}},
+  "result": {"item": "bellstaff_tplayers:bell_metal_block", "count": 1}
+}
