@@ -1,6 +1,5 @@
 package org.belltaffmod.bellstaff_tplayers.server;
 
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import org.belltaffmod.bellstaff_tplayers.Bellstaff_tplayers;
