@@ -15,8 +15,14 @@ public final class BellstaffConstants {
     public static final float HIT_SOUND_VOLUME = 1.0F;
     public static final float HIT_SOUND_PITCH = 1.0F;
 
-    public static final boolean AFFECT_ONLY_PLAYERS = true;
+    public static final boolean AFFECT_ONLY_PLAYERS = false;
     public static final int EFFECT_DURATION_SECONDS = 30;
+
+    public static final double NON_OWNER_HEALTH_STEP = 1.0D;
+    public static final int NON_OWNER_LOSS_INTERVAL_TICKS = 20;
+    public static final int NON_OWNER_RECOVERY_INTERVAL_TICKS = 15;
+    public static final double NON_OWNER_MIN_MAX_HEALTH = 2.0D;
+    public static final boolean PENALIZE_CREATIVE_PLAYERS = false;
 
     public static final float[] TIER_CHANCES = { 0.40F, 0.30F, 0.25F };
     public static final int[] WEAKNESS_AMPLIFIERS = { 0, 1, 3 };
