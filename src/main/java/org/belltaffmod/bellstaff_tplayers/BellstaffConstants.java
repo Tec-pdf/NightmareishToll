@@ -24,6 +24,8 @@ public final class BellstaffConstants {
     public static final double NON_OWNER_MIN_MAX_HEALTH = 2.0D;
     public static final boolean PENALIZE_CREATIVE_PLAYERS = false;
 
+    public static final boolean PENALIZE_ENTITIES = true;
+
     public static final float[] TIER_CHANCES = { 0.40F, 0.30F, 0.25F };
     public static final int[] WEAKNESS_AMPLIFIERS = { 0, 1, 3 };
     public static final int[] SLOWNESS_AMPLIFIERS = { 0, 1, 3 };

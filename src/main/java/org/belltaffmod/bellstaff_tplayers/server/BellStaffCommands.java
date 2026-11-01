@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.commands.arguments.UuidArgument;
 import org.belltaffmod.bellstaff_tplayers.Bellstaff_tplayers;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -19,12 +20,13 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.commands.arguments.GameProfileArgument;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Bellstaff_tplayers.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class BellStaffCommands {
 
     // Nível de permissão exigido: 2 = operador (cheats ativados no singleplayer).
-    private static final int PERMISSION_LEVEL = 2;   // ALTERE ESTE VALOR AQUI
+    private static final int PERMISSION_LEVEL = 2;
 
     private BellStaffCommands() {}
 
@@ -49,6 +51,9 @@ public final class BellStaffCommands {
                 .then(Commands.literal("set")
                         .then(Commands.argument("jogador", GameProfileArgument.gameProfile())
                                 .executes(BellStaffCommands::setOwner)))
+                .then(Commands.literal("setuuid")
+                        .then(Commands.argument("uuid", UuidArgument.uuid())
+                                .executes(BellStaffCommands::setOwnerEntity)))
                 .then(Commands.literal("clear")
                         .executes(BellStaffCommands::clearOwner))
                 .then(Commands.literal("get")
@@ -97,6 +102,63 @@ public final class BellStaffCommands {
         return count;
     }
 
+    private static int setOwner(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(ctx, "jogador");
+        if (profiles.size() != 1){
+            source.sendFailure(Component.literal("Escolha exatamente um jogador."));
+            return 0;
+        }
+
+        GameProfile profile = profiles.iterator().next();
+        final String name = profile.getName();
+        StaffOwnerData.get(source.getServer()).setOwner(profile.getId(), name);
+        source.sendSuccess(() -> Component.literal(name + " agora é o dono da Bellstaff."), true);
+        return 1;
+    }
+
+    private static int setOwnerByUuid(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        UUID id = UuidArgument.getUuid(ctx, "uuid");
+
+        ServerPlayer online = source.getServer().getPlayerList().getPlayer(id);
+        final String name = (online != null) ? online.getGameProfile().getName() : id.toString();
+
+        StaffOwnerData.get(source.getServer()).setOwner(id, name);
+        source.sendSuccess(() -> Component.literal("Dono da Bellstaff definido: " + name), true);
+        return 1;
+    }
+
+    private static int setOwnerEntity(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        Entity entity = EntityArgument.getEntity(ctx, "entidade");
+
+        final String name = entity.getName().getString();
+        StaffOwnerData.get(source.getServer()).setOwner(entity.getUUID(), name);
+        source.sendSuccess(() -> Component.literal("Dono da Bellstaff definido: " + name), true);
+        return 1;
+    }
+
+    private static int clearOwner(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack source = ctx.getSource();
+        StaffOwnerData.get(source.getServer()).clearOwner();
+        source.sendSuccess(() -> Component.literal("A Bellstaff ficou sem dono."), true);
+        return 1;
+    }
+
+    private static int showOwner(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack source =ctx.getSource();
+        StaffOwnerData data = StaffOwnerData.get(source.getServer());
+        if (data.getOwner() == null) {
+            source.sendSuccess(() -> Component.literal("A Bellstaff não tem dono definido."), false);
+            return 0;
+        }
+
+        final String name = data.getOwnerName();
+        source.sendSuccess(() -> Component.literal("Dono da Bellstaff: " + name), false);
+        return 1;
+    }
+
     private static int stop(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
 
@@ -117,37 +179,4 @@ public final class BellStaffCommands {
         return count;
     }
 
-    private static int setOwner(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        CommandSourceStack source = ctx.getSource();
-        Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(ctx, "jogador");
-        if (profiles.size() != 1) {
-            source.sendFailure(Component.literal("Escolha exatamente um jogador."));
-            return 0;
-        }
-
-        GameProfile profile = profiles.iterator().next();
-        final String name = profile.getName();
-        StaffOwnerData.get(source.getServer()).setOwner(profile.getId(), name);
-        source.sendSuccess(() -> Component.literal(name + " agora é o dono da Bellstaff."), true);
-        return 1;
-    }
-
-    private static int clearOwner(CommandContext<CommandSourceStack> ctx) {
-        CommandSourceStack source = ctx.getSource();
-        StaffOwnerData.get(source.getServer()).clearOwner();
-        source.sendSuccess(() -> Component.literal("A Bellstaff ficou sem dono."), true);
-        return 1;
-    }
-
-    private static int showOwner(CommandContext<CommandSourceStack> ctx) {
-        CommandSourceStack source = ctx.getSource();
-        StaffOwnerData data = StaffOwnerData.get(source.getServer());
-        if (data.getOwner() == null){
-            source.sendSuccess(() -> Component.literal("A Bellstaff não tem dono definido."), false);
-            return 0;
-        }
-        final String name = data.getOwnerName();
-        source.sendSuccess(() -> Component.literal("O Dono atual da Bellstaff é: " + name), false);
-        return 1;
-    }
 }
