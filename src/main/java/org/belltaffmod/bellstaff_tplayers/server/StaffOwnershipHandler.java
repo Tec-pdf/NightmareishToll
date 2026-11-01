@@ -1,6 +1,5 @@
 package org.belltaffmod.bellstaff_tplayers.server;
 
-
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -13,25 +12,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.belltaffmod.bellstaff_tplayers.BellstaffConstants;
 import org.belltaffmod.bellstaff_tplayers.Bellstaff_tplayers;
+import org.belltaffmod.bellstaff_tplayers.BellstaffConstants;
 import org.belltaffmod.bellstaff_tplayers.item.BellStaffItem;
 
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Bellstaff_tplayers.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class StaffOwnershipHandler {
+public final class StaffOwnershipHandler {
 
+    // Identidade fixa do modificador: é assim que o jogo sabe qual é "a nossa penalidade".
     private static final UUID PENALTY_ID = UUID.fromString("7d3e5a10-2c4b-4f8e-b1a6-9e0c52d7f348");
     private static final String PENALTY_NAME = "bellstaff_tplayers:not_owner_penalty";
 
     private StaffOwnershipHandler() {}
 
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event){
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!(entity.level() instanceof ServerLevel level)) return;
+        if (!(entity.level() instanceof ServerLevel level)) return;   // só no servidor
 
+        // Na maioria dos ticks não há nada a fazer: sai antes de qualquer outra coisa.
         boolean lossTick = entity.tickCount % BellstaffConstants.NON_OWNER_LOSS_INTERVAL_TICKS == 0;
         boolean recoveryTick = entity.tickCount % BellstaffConstants.NON_OWNER_RECOVERY_INTERVAL_TICKS == 0;
         if (!lossTick && !recoveryTick) return;
@@ -41,21 +42,21 @@ public class StaffOwnershipHandler {
 
         AttributeModifier existing = maxHealth.getModifier(PENALTY_ID);
         boolean carries = carriesStaff(entity);
-        if(!carries && existing == null) return;
+        if (!carries && existing == null) return;   // não carrega e não está penalizado
 
         double lost = (existing == null) ? 0.0D : -existing.getAmount();
         double step = BellstaffConstants.NON_OWNER_HEALTH_STEP;
         double newLost = lost;
 
-        if (carries && isSubjectToPenalty(entity, level.getServer())){
-            if (lossTick){
+        if (carries && isSubjectToPenalty(entity, level.getServer())) {
+            if (lossTick) {
                 double limit = Math.max(0.0D,
                         (maxHealth.getValue() + lost) - BellstaffConstants.NON_OWNER_MIN_MAX_HEALTH);
-                if (lost < limit){
+                if (lost < limit) {
                     newLost = Math.min(lost + step, limit);
                 }
             }
-        } else if (recoveryTick && lost > 0.0D){
+        } else if (recoveryTick && lost > 0.0D) {
             newLost = Math.max(0.0D, lost - step);
         }
 
@@ -67,37 +68,45 @@ public class StaffOwnershipHandler {
                     PENALTY_ID, PENALTY_NAME, -newLost, AttributeModifier.Operation.ADDITION));
         }
 
-        if (entity.getHealth() > entity.getMaxHealth()){
+        // Perdendo vida máxima: a vida atual nunca pode ficar acima da nova vida máxima.
+        if (entity.getHealth() > entity.getMaxHealth()) {
             entity.setHealth(entity.getMaxHealth());
+        }
+
+        // Recuperando: além da vida máxima, cura o mesmo tanto, no mesmo tick.
+        // heal() cura direto, sem depender de fome nem de saturação.
+        double recovered = lost - newLost;
+        if (recovered > 0.0D && BellstaffConstants.NON_OWNER_HEAL_ON_RECOVERY) {
+            entity.heal((float) recovered);
         }
     }
 
-    private static boolean isSubjectToPenalty(LivingEntity entity, MinecraftServer server){
+    // Esta criatura deve sofrer a penalidade (se estiver carregando o cajado)?
+    private static boolean isSubjectToPenalty(LivingEntity entity, MinecraftServer server) {
         UUID owner = StaffOwnerData.get(server).getOwner();
         if (owner == null || owner.equals(entity.getUUID())) return false;
 
-        if (entity instanceof Player player){
+        if (entity instanceof Player player) {
             return BellstaffConstants.PENALIZE_CREATIVE_PLAYERS
                     || !(player.isCreative() || player.isSpectator());
         }
-
         return BellstaffConstants.PENALIZE_ENTITIES;
     }
 
-    private static boolean carriesStaff(LivingEntity entity){
-        if (entity instanceof Player player){
+    private static boolean carriesStaff(LivingEntity entity) {
+        if (entity instanceof Player player) {
+            // Hotbar, inventário, armadura, mão secundária e o item preso no cursor.
             Inventory inventory = player.getInventory();
-            for (int i = 0; i < inventory.getContainerSize(); i++){
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
                 if (inventory.getItem(i).getItem() instanceof BellStaffItem) return true;
             }
-
             return player.containerMenu.getCarried().getItem() instanceof BellStaffItem;
         }
 
-        for (EquipmentSlot slot : EquipmentSlot.values()){
+        // Mobs: mãos e peças de armadura.
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
             if (entity.getItemBySlot(slot).getItem() instanceof BellStaffItem) return true;
         }
-
         return false;
     }
 }

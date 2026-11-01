@@ -23,6 +23,7 @@ public final class BellstaffConstants {
     public static final int NON_OWNER_RECOVERY_INTERVAL_TICKS = 15;
     public static final double NON_OWNER_MIN_MAX_HEALTH = 2.0D;
     public static final boolean PENALIZE_CREATIVE_PLAYERS = false;
+    public static final boolean NON_OWNER_HEAL_ON_RECOVERY = true;
 
     public static final boolean PENALIZE_ENTITIES = true;
 
