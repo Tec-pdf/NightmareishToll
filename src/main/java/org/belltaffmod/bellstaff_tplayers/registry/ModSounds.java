@@ -1,6 +1,5 @@
 package org.belltaffmod.bellstaff_tplayers.registry;
 
-import net.minecraft.client.resources.sounds.Sound;
 import org.belltaffmod.bellstaff_tplayers.Bellstaff_tplayers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
