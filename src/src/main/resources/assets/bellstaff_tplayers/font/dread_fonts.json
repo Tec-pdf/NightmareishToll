@@ -1,0 +1,11 @@
+{
+  "providers": [
+    { "type":  "ttf", "file": "bellstaff_tplayers:special_elite_regular.ttf", "size": 11.0, "oversample":  2.0 },
+    { "type": "ttf", "file": "bellstaff_tplayers:zeyada_regular.ttf", "size": 11.0, "oversample": 2.0},
+    { "type":  "ttf", "file": "bellstaff_tplayers:tiny5duo.ttf", "size": 11.0, "oversample": 2.0},
+    { "type": "ttf", "file": "bellstaff_tplayers:redaction100_regular.ttf", "size": 11.0, "oversample": 2.0},
+    { "type": "ttf", "file": "bellstaff_tplayers:redaction70_regular.ttf", "size": 11.0, "oversample": 2.0},
+    { "type": "ttf", "file": "bellstaff_tplayers:redaction50_regular.ttf", "size": 11.0, "oversample": 2.0},
+    { "type": "reference", "id": "minecraft:default"}
+  ]
+}
