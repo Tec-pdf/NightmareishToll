@@ -62,13 +62,21 @@ public final class BellStaffCommands {
                 .then(Commands.literal("get")
                         .executes(BellStaffCommands::showOwner));
 
+        // /bellstaff fright <alvos> [<fonte>]
+        LiteralArgumentBuilder<CommandSourceStack> frightCommand = Commands.literal("fright")
+                .then(Commands.argument("alvos", EntityArgument.entities())
+                        .executes(ctx -> fright(ctx, null))
+                        .then(Commands.argument("fonte", EntityArgument.entity())
+                                .executes(ctx -> fright(ctx, EntityArgument.getEntity(ctx, "fonte")))));
+
         // Um único registro do comando raiz /bellstaff.
         dispatcher.register(Commands.literal("bellstaff")
                 .requires(source -> source.hasPermission(PERMISSION_LEVEL))
                 .then(Commands.literal("minigame")
                         .then(startCommand)
                         .then(stopCommand))
-                .then(ownerCommand));
+                .then(ownerCommand)
+                .then(frightCommand));
     }
 
     private static int start(CommandContext<CommandSourceStack> ctx, Entity chosenAttacker)
@@ -117,6 +125,30 @@ public final class BellStaffCommands {
         }
         source.sendSuccess(() -> Component.literal("Minigame encerrado em " + count + " jogador(es)."), true);
         return count;
+    }
+
+    // /bellstaff fright <alvos> [<fonte>]
+    // Fonte do medo: a <fonte> escolhida ou, se omitida, quem executou o comando.
+    private static int fright(CommandContext<CommandSourceStack> ctx, Entity chosen)
+            throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        Entity fearSource = (chosen != null) ? chosen : source.getEntity();
+        if (fearSource == null) {
+            source.sendFailure(Component.literal("Informe a fonte do medo: /bellstaff fright <alvos> <fonte>"));
+            return 0;
+        }
+
+        int count = 0;
+        for (Entity target : EntityArgument.getEntities(ctx, "alvos")) {
+            if (target instanceof LivingEntity living && target != fearSource) {
+                FrightManager.apply(living, fearSource.getUUID());
+                count++;
+            }
+        }
+
+        final int total = count;
+        source.sendSuccess(() -> Component.literal("Nightmareish Fright aplicado em " + total + " entidade(s)."), true);
+        return total;
     }
 
     // /bellstaff owner set <jogador>  (nome ou seletor; pode estar offline)

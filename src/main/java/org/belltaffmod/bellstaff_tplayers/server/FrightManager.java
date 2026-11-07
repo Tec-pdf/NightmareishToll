@@ -2,7 +2,7 @@ package org.belltaffmod.bellstaff_tplayers.server;
 
 import org.belltaffmod.bellstaff_tplayers.BellstaffConstants;
 import org.belltaffmod.bellstaff_tplayers.registry.ModEffects;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public final class FrightManager {
     // vítima -> fonte do medo (quem usou o cajado)
     private static final Map<UUID, UUID> SOURCES = new HashMap<>();
 
-    public static void apply(ServerPlayer victim, UUID sourceId) {
+    public static void apply(LivingEntity victim, UUID sourceId) {
         SOURCES.put(victim.getUUID(), sourceId);
         victim.addEffect(new MobEffectInstance(ModEffects.NIGHTMAREISH_FRIGHT.get(),
                 BellstaffConstants.FRIGHT_DURATION_SECONDS * 20, 0, false, true, true));

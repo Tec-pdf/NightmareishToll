@@ -54,18 +54,18 @@ public final class BellStaffHitHandler {
         int currentTier = getCurrentTier(target);
         RandomSource random = target.getRandom();
 
-        if (currentTier < BellstaffConstants.MAX_TIER){
+        if (currentTier < BellstaffConstants.MAX_TIER) {
             float chance = BellstaffConstants.TIER_CHANCES[currentTier]
                     + (critical ? BellstaffConstants.CRIT_BONUS_TIER_CHANCE : 0.0F);
-            if (random.nextFloat() < chance){
+            if (random.nextFloat() < chance) {
                 applyTier(target, currentTier + 1);
             }
-        } else if (target instanceof ServerPlayer player){
+        } else {
             float chance = BellstaffConstants.MINIGAME_CHANCE
                     + (critical ? BellstaffConstants.CRIT_BONUS_MINIGAME_CHANCE : 0.0F);
-
-            if (random.nextFloat() < chance){
-                MinigameManager.start(player, attacker);
+            if (random.nextFloat() < chance) {
+                if (target instanceof ServerPlayer player) MinigameManager.start(player, attacker);
+                else FrightManager.apply(target, attacker.getUUID());
             }
         }
     }
